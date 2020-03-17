@@ -46,7 +46,15 @@ int simple_calc(char *s) {
 			}
 			break;
 		case '*':
-			result *= atoi(++s);
+			switch (*(s + 1)) {
+			// *-
+			case '-':
+				++s;
+				result *= -atoi(++s);
+				break;
+			default:
+				result *= atoi(++s);
+			}
 			break;
 		default:
 			result = atoi(s);
