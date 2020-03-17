@@ -45,6 +45,9 @@ int simple_calc(char *s) {
 				result -= atoi(++s);
 			}
 			break;
+		case '*':
+			result *= atoi(++s);
+			break;
 		default:
 			result = atoi(s);
 		}
