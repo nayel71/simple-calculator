@@ -7,17 +7,13 @@ bool is_digit(char c) {
 	return '0' <= c && c <= '9';
 }
 
-bool is_space(char c) {
-	return c == ' ';
-}
-
 void ignore(char **s) {
-	while (*s && (is_digit(**s) || is_space(**s))) {
+	while (*s && is_digit(**s)) {
 		(*s)++;
 	}
 }
 
-// calculates an expression involving only numbers, + and -
+// calculates an expression involving only numbers, +, - and *
 int simple_calc(char *s) {
 	int result = 0;
 	
