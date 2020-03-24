@@ -25,4 +25,6 @@ make
 * Supports integer division.
 * Invalid expressions return `0`.
 
-![1](gui/1.png)|![2](gui/2.png)
+<b>Screenshots:</b>
+
+![1](gui/1.png)![2](gui/2.png)
