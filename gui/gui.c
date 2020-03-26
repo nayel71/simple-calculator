@@ -27,10 +27,6 @@ GtkWidget *c_button;
 const int BUF_SIZE = 19;
 char display_text[BUF_SIZE];
 
-bool is_digit(char c) {
-	return '0' <= c && c <= '9';
-}
-
 // calculates an expression involving only numbers, +, -, * and /
 long simple_calc(char *s) {
 	long result = 0;
