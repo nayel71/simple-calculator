@@ -3,8 +3,10 @@
 #include <string.h>
 #include <gtk/gtk.h>
 
-const int WIDTH = 3;
-const int HEIGHT = 3;
+#define WIDTH 3
+#define HEIGHT 3
+#define BASE 10
+#define BUF_SIZE 19
 
 GtkWidget *window;
 GtkWidget *grid;
@@ -24,16 +26,13 @@ GtkWidget *close_button;
 GtkWidget *ac_button;
 GtkWidget *c_button;
 
-const int BUF_SIZE = 19;
 char display_text[BUF_SIZE];
 int display_len = 0;
-const int BASE = 10;
 
 // calculates an expression involving only numbers, +, -, * and /
 long simple_calc(char *s) {
 	long result = 0;
-	long denominator;
-	char *next = s;
+	long denominator = 0;
 	
 	while (*s) {
 		switch (*s) {
@@ -47,33 +46,33 @@ long simple_calc(char *s) {
 		case '7':
 		case '8':
 		case '9':
-			result = strtol(s, &next, BASE);
+			result = strtol(s, &s, BASE);
 			break;
 		case '+': 
 			switch (*(s + 1)) {
 			case '-': // evaluate +- to - (for example, 1+-2 should be 1-2)
 				++s;
-				result -= strtol(++s, &next, BASE);
+				result -= strtol(++s, &s, BASE);
 				break;
 			default:
-				result += strtol(++s, &next, BASE);
+				result += strtol(++s, &s, BASE);
 			}
 			break;
 		case '-':
 			switch (*(s + 1)) {
 			case '-': // evaluate -- to + (for example, 1--2 should be 1+2)
 				++s;
-				result += strtol(++s, &next, BASE);
+				result += strtol(++s, &s, BASE);
 				break;
 			default:
-				result -= strtol(++s, &next, BASE);
+				result -= strtol(++s, &s, BASE);
 			}
 			break;
 		case '*':
-			result *= strtol(++s, &next, BASE);
+			result *= strtol(++s, &s, BASE);
 			break;
 		case '/':
-			denominator = strtol(++s, &next, BASE);
+			denominator = strtol(++s, &s, BASE);
 			if (denominator) {
 				result /= denominator;
 			} else {
@@ -83,8 +82,6 @@ long simple_calc(char *s) {
 		default:
 			return 0; // invalid expression
 		}
-
-		s = next;
 	}
 	
 	return result;
@@ -92,7 +89,6 @@ long simple_calc(char *s) {
 
 void calc(GtkWidget *widget, gpointer user_data) {
 	int open_pos = -1, close_pos = -1;
-	long ans;
 
 	for (int i = 0; i < display_len; i++) {
 		// evaluate innnermost brackets first
@@ -134,7 +130,7 @@ void calc(GtkWidget *widget, gpointer user_data) {
 		}
 	}
 
-	ans = simple_calc(display_text);
+	long ans = simple_calc(display_text);
 	display_len = snprintf(NULL, 0, "%ld", ans);
 	snprintf(display_text, display_len + 1, "%ld", ans);
 	gtk_text_buffer_set_text(buffer, display_text, -1);
