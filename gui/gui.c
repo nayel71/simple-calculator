@@ -26,6 +26,8 @@ GtkWidget *c_button;
 
 const int BUF_SIZE = 19;
 char display_text[BUF_SIZE];
+int display_len = 0;
+const int BASE = 10;
 
 // calculates an expression involving only numbers, +, -, * and /
 long simple_calc(char *s) {
@@ -45,33 +47,33 @@ long simple_calc(char *s) {
 		case '7':
 		case '8':
 		case '9':
-			result = strtol(s, &next, 0);
+			result = strtol(s, &next, BASE);
 			break;
 		case '+': 
 			switch (*(s + 1)) {
 			case '-': // evaluate +- to - (for example, 1+-2 should be 1-2)
 				++s;
-				result -= strtol(++s, &next, 0);
+				result -= strtol(++s, &next, BASE);
 				break;
 			default:
-				result += strtol(++s, &next, 0);
+				result += strtol(++s, &next, BASE);
 			}
 			break;
 		case '-':
 			switch (*(s + 1)) {
 			case '-': // evaluate -- to + (for example, 1--2 should be 1+2)
 				++s;
-				result += strtol(++s, &next, 0);
+				result += strtol(++s, &next, BASE);
 				break;
 			default:
-				result -= strtol(++s, &next, 0);
+				result -= strtol(++s, &next, BASE);
 			}
 			break;
 		case '*':
-			result *= strtol(++s, &next, 0);
+			result *= strtol(++s, &next, BASE);
 			break;
 		case '/':
-			denominator = strtol(++s, &next, 0);
+			denominator = strtol(++s, &next, BASE);
 			if (denominator) {
 				result /= denominator;
 			} else {
@@ -89,10 +91,10 @@ long simple_calc(char *s) {
 }
 
 void calc(GtkWidget *widget, gpointer user_data) {
-	int len = strlen(display_text), open_pos = -1, close_pos = -1;
+	int open_pos = -1, close_pos = -1;
 	long ans;
 
-	for (int i = 0; i < len; i++) {
+	for (int i = 0; i < display_len; i++) {
 		// evaluate innnermost brackets first
 		switch (display_text[i]) {
 		case '(':
@@ -101,8 +103,8 @@ void calc(GtkWidget *widget, gpointer user_data) {
 		case ')':
 			// extract innermost part
 			close_pos = i;
-			if (open_pos < 0 || open_pos >= close_pos ) { // invalid expression
-				i = len;
+			if (open_pos < 0 || open_pos >= close_pos) { // invalid expression
+				i = display_len;
 				break;
 			}
 			char inner[close_pos - open_pos];
@@ -122,36 +124,40 @@ void calc(GtkWidget *widget, gpointer user_data) {
 			strcat(display_text, result_str);
 
 			// append the remaining part
-			char tail[len - close_pos];
-			memcpy(tail, display_text + close_pos + 1, len - close_pos);
+			char tail[display_len - close_pos];
+			memcpy(tail, display_text + close_pos + 1, display_len - close_pos);
 			strcat(display_text, tail);
 
-			// update len and go back to beginning
-			len -= close_pos - open_pos + 1 - result_len;
+			// update display_len and go back to beginning
+			display_len -= close_pos - open_pos + 1 - result_len;
 			i = -1;
 		}
 	}
 
 	ans = simple_calc(display_text);
-	snprintf(display_text, BUF_SIZE, "%ld", ans);
+	display_len = snprintf(NULL, 0, "%ld", ans);
+	snprintf(display_text, display_len + 1, "%ld", ans);
 	gtk_text_buffer_set_text(buffer, display_text, -1);
 }
 
 void click(GtkWidget *widget, gpointer user_data) {
-	if (strlen(display_text) >= BUF_SIZE - 1) {
+	if (display_len >= BUF_SIZE - 1) {
 		return;
 	}
 	strcat(display_text, gtk_button_get_label(GTK_BUTTON(widget)));
+	display_len++;
 	gtk_text_buffer_set_text(buffer, display_text, -1);
 }
 
 void ac(GtkWidget *widget, gpointer user_data) {
 	display_text[0] = '\0';
+	display_len = 0;
 	gtk_text_buffer_set_text(buffer, display_text, -1);
 }
 
 void c(GtkWidget *widget, gpointer user_data) {
-	display_text[strlen(display_text) - 1] = '\0';
+	display_text[display_len - 1] = '\0';
+	display_len--;
 	gtk_text_buffer_set_text(buffer, display_text, -1);
 }
 
